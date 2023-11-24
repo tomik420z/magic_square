@@ -1,11 +1,12 @@
 #pragma once 
 #include "square.h"
-#include <unordered_set>
+
+#include <optional>
 
 class algorithm_magic_sq {
 public:
     template<size_t N>
-    static bool is_magic_square_opt(const square<N>& matrix, std::array<bool, (N + 1) * (N + 1)> _digits) {
+    static std::optional<square<N + 1>> is_magic_square_opt(const square<N>& matrix, std::array<bool, (N + 1) * (N + 1)> _digits) {
         static constexpr int _n = N + 1;
         static constexpr int sum = (_n *  (_n * _n + 1)) / 2;
         
@@ -19,12 +20,12 @@ public:
         
         if (1 <= corner_element && corner_element <= _digits.size()) {
             if (!_digits[corner_element - 1]) {
-                return false;
+                return std::nullopt;
             } else {
                 _digits[corner_element - 1] = false;
             }
         } else {
-            return false;
+            return std::nullopt;
         }
 
         std::array<int, N> rows;
@@ -42,12 +43,12 @@ public:
 
             if (1 <= current_v && current_v <= _digits.size()) {
                 if (!_digits[current_v - 1]) {
-                    return false;
+                    return nullopt;
                 } else {
                     _digits[current_v - 1] = false;
                 }
             } else {
-                return false;
+                return std::nullopt;
             }
         }
             
@@ -63,12 +64,12 @@ public:
             
             if (1 <= current_v && current_v <= _digits.size()) {
                 if (!_digits[current_v - 1]) {
-                    return false;
+                    return std::nullopt;
                 } else {
                     _digits[current_v - 1] = false;
                 }
             } else {
-                return false;
+                return std::nullopt;
             }   
         }
         
@@ -81,7 +82,7 @@ public:
         }
 
         if (sum_cols + corner_element != sum || sum_rows + corner_element != sum) {
-            return false;
+            return std::nullopt;
         }
 
         int sum_add_diag = cols[0] + rows[0];
@@ -89,7 +90,37 @@ public:
             sum_add_diag  += matrix(i, N - i);
         }
 
-        return sum_add_diag == sum;
+        
+        if (sum_add_diag == sum) {
+            return {get_square(matrix, rows, cols, corner_element)};
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    template<size_t N> 
+    static square<N+1> get_square(const square<N>& _sq, 
+                                    std::array<int, N> & _row, 
+                                    std::array<int, N>& _col, 
+                                    int _corner_element) {
+        square<N+1> ans;
+        for(size_t i = 0; i < N; ++i) {
+            for(size_t j = 0; j < N; ++j) {
+                ans(i, j) = _sq(i, j);
+            }
+        }
+
+        for(size_t i = 0; i < N; ++i) {
+            ans(N, i) = _row[i];
+        }
+
+        for(size_t j = 0; j < N; ++j) {
+            ans(j, N) = _col[j];
+        }
+
+        ans(N, N) = _corner_element;
+
+        return ans;
     }
 
     template<std::size_t N>  

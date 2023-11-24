@@ -4,6 +4,7 @@
 #include <future>
 #include <cmath>
 #include <list>
+#include <fstream>
 #include <algorithm>
 
 #include <ctime>
@@ -23,14 +24,14 @@ public:
     matrix_enumeration_algorithm() {}
     ~matrix_enumeration_algorithm() = default;
 
-    std::list<square<N>> alg() {
+    std::list<square<N + 1>> alg() {
     
         combinations comb((N + 1) * (N + 1), N * N);
         
         size_t count_thr = std::thread::hardware_concurrency();
 
         //буффер, куда будут записаны найденные матрицы 
-        std::vector<std::list<square<N>>> vec_buffers(count_thr);
+        std::vector<std::list<square<N + 1>>> vec_buffers(count_thr);
         
         while(!comb.completed) {
 
@@ -83,7 +84,7 @@ private:
         return result_mx;
     }   
 
-    void calculate_current_combination(std::list<square<N>>& _li,  
+    void calculate_current_combination(std::list<square<N + 1>>& _li,  
                                       std::vector<long long> currnet_combination) {
 
         // инициализация квадрата 
@@ -103,16 +104,16 @@ private:
         }
         
         for(size_t i = 0; i < count_permutation; ++i) {
-            if (algorithm_magic_sq::is_magic_square_opt(sq, array_visited)) {
-                _li.push_back(square<N>(sq));
+            if (auto magic_sq = algorithm_magic_sq::is_magic_square_opt(sq, array_visited); magic_sq) {
+                _li.emplace_back(*magic_sq);
             } 
 
             std::next_permutation(sq.begin(), sq.end());
         }
     }   
-
+    /*
     void calculate_range(size_t _first, size_t _last, 
-                        std::list<square<N>>& _li, 
+                        std::list<square<N + 1>>& _li, 
                         std::vector<bool> _visit) {
         
         auto sq = get_permutation(_first);
@@ -126,13 +127,13 @@ private:
             std::next_permutation(sq.begin(), sq.end());
             
         }
-    }
+    }*/
 
-    std::list<square<N>> splice_lists(std::vector<std::list<square<N>>>& _vec_buffers) {
-        std::list<square<N>> result_li;
+    std::list<square<N + 1>> splice_lists(std::vector<std::list<square<N + 1>>>& _vec_buffers) {
+        std::list<square<N + 1>> result_li;
 
         for(auto&& list_squares : _vec_buffers) {
-            result_li.splice(result_li.begin(), list_squares);
+            result_li.splice(result_li.begin(), std::move(list_squares));
         }
 
         return result_li; 
@@ -140,14 +141,31 @@ private:
 
 };
 
+template<size_t N>
+void write_file(const std::list<square<N>> & _li)  {
+    std::ofstream ofs(std::string("out_" + std::to_string(N) + "x" + std::to_string(N) + ".txt"));
+
+    if (!ofs.is_open()) {
+        throw std::string("file not opened");
+    }
+
+    for(const auto& sq : _li) {
+        ofs << sq << std::endl;
+    }
+
+    ofs.close();
+
+}
+
 
 int main(int argc, char* argv[]) {
-    
-    matrix_enumeration_algorithm<4> enumeration_matrix;
+    clock_t t1 = clock();
+    matrix_enumeration_algorithm<3> enumeration_matrix;
     auto ans = enumeration_matrix.alg();
-    for(const auto& el : ans) {
-        std::cout << el << std::endl;
-    }
+    clock_t t2 = clock();
+    std::cout << "time execution: " << t2 - t1 << " ms" << std::endl;
+
+    write_file(ans);
 
     std::cout << "size magic square: " << ans.size() << std::endl;
     
