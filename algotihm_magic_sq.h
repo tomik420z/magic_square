@@ -111,11 +111,11 @@ public:
         }
 
         for(size_t i = 0; i < N; ++i) {
-            ans(N, i) = _row[i];
+            ans(N, i) = _col[i];
         }
 
         for(size_t j = 0; j < N; ++j) {
-            ans(j, N) = _col[j];
+            ans(j, N) = _row[j];
         }
 
         ans(N, N) = _corner_element;

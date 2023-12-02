@@ -160,7 +160,7 @@ void write_file(const std::list<square<N>> & _li)  {
 
 int main(int argc, char* argv[]) {
     clock_t t1 = clock();
-    matrix_enumeration_algorithm<3> enumeration_matrix;
+    matrix_enumeration_algorithm<4> enumeration_matrix;
     auto ans = enumeration_matrix.alg();
     clock_t t2 = clock();
     std::cout << "time execution: " << t2 - t1 << " ms" << std::endl;
